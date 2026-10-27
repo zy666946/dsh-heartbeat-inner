@@ -1,5 +1,8 @@
 # dsh-heartbeat-inner
 
+[![Release](https://img.shields.io/github/v/release/zy666946/dsh-heartbeat-inner?include_prereleases)](https://github.com/zy666946/dsh-heartbeat-inner/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的一个**主动心跳**插件：
 它会定时醒来，自己判断「现在要不要主动找主人说句话」——不是机械的定时问候，而是**大多数时候不发**。
 
