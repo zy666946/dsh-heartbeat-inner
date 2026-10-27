@@ -1,0 +1,55 @@
+{
+  "name": "dsh-heartbeat-inner",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "给 DeepSeek Harness 的主动心跳插件：定时醒来，自己判断要不要主动找主人说句话（OneBot/QQ 渠道，带设置页）。",
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "heartbeat",
+    "proactive",
+    "onebot",
+    "qq"
+  ],
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./client": "./lib/client.js"
+  },
+  "files": [
+    "lib",
+    "examples",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-name/dsh-heartbeat-inner.git"
+  },
+  "homepage": "https://github.com/your-name/dsh-heartbeat-inner#readme",
+  "bugs": {
+    "url": "https://github.com/your-name/dsh-heartbeat-inner/issues"
+  }
+}
