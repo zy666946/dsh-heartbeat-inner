@@ -44,7 +44,7 @@ POST 思考接口（或本地子进程）→ 模型输出 JSON
 
 ```bash
 DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-git clone <本仓库地址> "$DSH_HOME/plugins/dsh-heartbeat"
+git clone https://github.com/zy666946/dsh-heartbeat-inner "$DSH_HOME/plugins/dsh-heartbeat"
 ```
 
 （或者解压 release 里的 `dsh-heartbeat-*.tgz` 到 `$DSH_HOME/plugins/dsh-heartbeat`）

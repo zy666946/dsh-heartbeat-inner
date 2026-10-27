@@ -46,10 +46,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-name/dsh-heartbeat-inner.git"
+    "url": "https://github.com/zy666946/dsh-heartbeat-inner.git"
   },
-  "homepage": "https://github.com/your-name/dsh-heartbeat-inner#readme",
+  "homepage": "https://github.com/zy666946/dsh-heartbeat-inner#readme",
   "bugs": {
-    "url": "https://github.com/your-name/dsh-heartbeat-inner/issues"
+    "url": "https://github.com/zy666946/dsh-heartbeat-inner/issues"
   }
 }
