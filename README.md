@@ -112,7 +112,10 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat" node_modules/dsh-heartbeat
 
 插件把 prompt 发给一个本地 HTTP 服务，由它调用模型并返回纯文本。这样可以把「想」交给一个常驻的 SDK 进程，避免每次冷启动。
 
-本项目自带的桥接实现见 [`examples/bridge-think-endpoint.mjs`](examples/bridge-think-endpoint.mjs)：
+**如果你装了 [dsh-qq](https://github.com/zy666946/dsh-qq)**，它的 `127.0.0.1:3002/think` 就是现成的思考接口，
+`thinkUrl` 直接指向它即可，不用再单独跑一个桥接进程 —— 两个插件共享同一个常驻 SDK 会话。
+
+没装 dsh-qq 的话，本项目自带一个参考实现 [`examples/bridge-think-endpoint.mjs`](examples/bridge-think-endpoint.mjs)：
 它就是一个 `POST /think` 接口，内部复用 `dsh --profile sdk` 的会话。
 
 ```bash
