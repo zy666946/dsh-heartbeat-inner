@@ -47,10 +47,10 @@ POST 思考接口（或本地子进程）→ 模型输出 JSON
 
 ```bash
 DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-git clone https://github.com/zy666946/dsh-heartbeat-inner "$DSH_HOME/plugins/dsh-heartbeat"
+git clone https://github.com/zy666946/dsh-heartbeat-inner "$DSH_HOME/plugins/dsh-heartbeat-inner"
 ```
 
-（或者解压 release 里的 `dsh-heartbeat-*.tgz` 到 `$DSH_HOME/plugins/dsh-heartbeat`）
+（或者解压 release 里的 `dsh-heartbeat-inner-*.tgz` 到 `$DSH_HOME/plugins/dsh-heartbeat-inner`）
 
 ### 2. 挂进 profile
 
@@ -60,7 +60,7 @@ git clone https://github.com/zy666946/dsh-heartbeat-inner "$DSH_HOME/plugins/dsh
 DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
 cd "$DSH_HOME/profiles/web"
 mkdir -p node_modules
-ln -sfn "$DSH_HOME/plugins/dsh-heartbeat" node_modules/dsh-heartbeat
+ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
 ```
 
 编辑 `$DSH_HOME/profiles/web/package.json`，加两行：
@@ -68,14 +68,14 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat" node_modules/dsh-heartbeat
 ```json
 {
   "dependencies": {
-    "dsh-heartbeat": "link:../../plugins/dsh-heartbeat"
+    "dsh-heartbeat-inner": "link:../../plugins/dsh-heartbeat-inner"
   },
   "dsh": {
     "profile": {
       "bundles": [
         "@deepseek-ai/dsh-base",
         "@deepseek-ai/dsh-web-app",
-        "dsh-heartbeat"
+        "dsh-heartbeat-inner"
       ]
     }
   }
@@ -208,3 +208,34 @@ node --check lib/client.js  # 浏览器端（手写 bundle，只验语法）
 ## License
 
 MIT
+
+## 排错
+
+### 页面提示 `Failed to load plugins` / `loaded without registering "dsh-heartbeat-inner"`
+
+0.2.0 及更早版本的 `lib/client.js` 里模块 id 写成了 `dsh-heartbeat`，
+而宿主是按**包名** `dsh-heartbeat-inner` 找模块的，名字对不上 → 前端加载失败、整页白屏。
+
+0.2.1 已修复（`id: 'dsh-heartbeat-inner'`）。升级：
+
+```bash
+cd "$DSH_HOME/plugins/dsh-heartbeat-inner" && git pull
+# 或者按上面的方式重新 npm i / 解压
+systemctl restart dsh
+```
+
+### 插件装上了但从不主动说话
+
+正常。它大多数时候选择沉默。想看它怎么想的，去 **设置 → 心跳**：
+
+- 「没有配置发送渠道」→ `channel.wsUrl` / `channel.targetId` 没填
+- 「安静时段」→ 当前在 `quietFrom~quietTo` 之间
+- 「距上次主动消息还不够久」→ 没到 `minGapMinutes`
+- 「主人刚说过话，不打扰」→ `userActiveMinutes` 内有人说话
+
+手动验证一次：设置页点「立即想一次」，或者
+
+```bash
+curl -X POST http://127.0.0.1:3080/api/heartbeat/trigger
+```
+
