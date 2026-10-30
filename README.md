@@ -97,7 +97,6 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
 - id: heartbeat
   config:
     enabled: true
-    intervalMinutes: 30      # 兜底检查间隔（主调度看期待时间）
     quietFrom: 0             # 安静时段（支持跨零点，23→7 表示 23:00-07:00）
     quietTo: 7
     minGapMinutes: 120       # 两次主动消息最小间隔
