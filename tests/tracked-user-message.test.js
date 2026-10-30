@@ -1,11 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { mkdtempSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { trackedUserMessage, syncLastUserFromBridge } from '../lib/index.js'
+import { trackedUserMessage, syncLastUserFromBridge, computeExpectation, readLastTurn } from '../lib/index.js'
 
 function event(text, { source = 'user', time = 1793320000000, nested = true } = {}) {
   const message = {
@@ -69,5 +69,47 @@ test('从 dsh-qq 的 /api/qq/state 同步主人最后一条消息', async () => 
   } finally {
     process.env.DSH_HOME = previousHome
     await new Promise((resolve) => server.close(resolve))
+  }
+})
+
+test('期待时间：亲近的话更短，正事更长', () => {
+  const cfg = { timeZone: 'Asia/Shanghai', maxAttempts: 3 }
+  const now = Date.parse('2026-10-30T15:00:00+08:00')
+  const warm = computeExpectation(cfg, { attempts: 0 }, { userText: '爸爸今天有点难过，想你了' }, now)
+  const work = computeExpectation(cfg, { attempts: 0 }, { userText: '帮我看看这个代码报错' }, now)
+  assert.ok(warm.at > now)
+  assert.ok(work.at > warm.at, '正事应该比亲近的话等更久')
+})
+
+test('期待时间：主动多次后停止，深夜顺延到早上', () => {
+  const cfg = { timeZone: 'Asia/Shanghai', maxAttempts: 3 }
+  const stopped = computeExpectation(cfg, { attempts: 3 }, { userText: '在吗' }, Date.now())
+  assert.equal(stopped.at, 0)
+  assert.match(stopped.reason, /等主人先开口/)
+
+  const night = Date.parse('2026-10-30T23:30:00+08:00')
+  const exp = computeExpectation(cfg, { attempts: 0 }, { userText: '晚安' }, night)
+  assert.ok(exp.at - night >= 7 * 3600 * 1000, '深夜不应马上发')
+})
+
+
+test('从 last-turn.json 读 dsh-qq 写下的这一轮', () => {
+  const previousHome = process.env.DSH_HOME
+  const home = mkdtempSync(join(tmpdir(), 'heartbeat-turn-'))
+  process.env.DSH_HOME = home
+  try {
+    mkdirSync(join(home, 'heartbeat'), { recursive: true })
+    writeFileSync(join(home, 'heartbeat', 'last-turn.json'), JSON.stringify({
+      userAt: 1793320000000,
+      userText: '今天有点累',
+      replyAt: 1793320060000,
+      replyText: '那先歇会儿，我在。',
+    }))
+    const turn = readLastTurn()
+    assert.equal(turn.userText, '今天有点累')
+    assert.equal(turn.replyText, '那先歇会儿，我在。')
+    assert.equal(turn.replyAt, 1793320060000)
+  } finally {
+    process.env.DSH_HOME = previousHome
   }
 })

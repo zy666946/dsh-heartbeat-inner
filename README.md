@@ -3,10 +3,10 @@
 [![Release](https://img.shields.io/github/v/release/zy666946/dsh-heartbeat-inner?include_prereleases)](https://github.com/zy666946/dsh-heartbeat-inner/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的一个**主动心跳**插件：
-它会定时醒来，自己判断「现在要不要主动找主人说句话」——不是机械的定时问候，而是**大多数时候不发**。
+给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的一个**「想你了」插件**：
+它不再按固定节律醒来，而是在每次回复完成后，根据这轮聊的内容、时间和情绪，设一个「他大概什么时候会回」的期待点。到点还没回，才自己想一次要不要主动找他。
 
-> 一句话概括：让 AI 有自己的节律，而不是只在被叫时才有反应。
+> 一句话概括：不是闹钟，是聊完之后心里那点惦记。
 
 ## 它和「定时任务」有什么不一样
 
@@ -27,18 +27,25 @@
 ## 工作方式
 
 ```
-每 N 分钟醒来
-   │
-   ├─ 安静时段？ ────────────────→ 睡回去
-   ├─ 距上次主动发 < 最小间隔？ ──→ 睡回去
-   ├─ 主人刚说过话？ ────────────→ 睡回去
-   ├─ 今天发够上限了？ ──────────→ 睡回去
+QQ 回复完成
    │
    ▼
-POST 思考接口（或本地子进程）→ 模型输出 JSON
+dsh-qq 写 last-turn.json（这轮的你 + 我）
    │
-   ├─ {"send": false, "reason": "…"}  → 记一笔，睡回去
-   └─ {"send": true,  "message": "…"} → 通过 OneBot 发出去
+   ▼
+算一个期待时间（内容 / 情绪 / 时间 / 已主动次数）
+   │
+   ├─ 主人先回了？ ────────────────→ 取消这一轮
+   ├─ 安静时段？ ──────────────────→ 顺延到早上
+   ├─ 到了期待时间，还没回
+   │     │
+   │     ▼
+   │  POST 思考接口（或本地子进程）→ 模型输出 JSON
+   │     │
+   │     ├─ {"send": false, "waitMinutes": 45} → 晚点再想
+   │     └─ {"send": true,  "message": "…"}   → 通过 OneBot 发出去
+   │
+   └─ 发了没回 → 指数退避；连续多次后停下等主人先开口
 ```
 
 ## 安装
@@ -90,12 +97,13 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
 - id: heartbeat
   config:
     enabled: true
-    intervalMinutes: 30      # 多久醒一次
+    intervalMinutes: 30      # 兜底检查间隔（主调度看期待时间）
     quietFrom: 0             # 安静时段（支持跨零点，23→7 表示 23:00-07:00）
     quietTo: 7
     minGapMinutes: 120       # 两次主动消息最小间隔
     userActiveMinutes: 40    # 主人刚说话后多少分钟内不打扰
     dailyMax: 5              # 每天最多主动发几条
+    maxAttempts: 3           # 连续主动几次没回就停下等主人
     cwd: "/path/to/your/workspace"
     thinkUrl: "http://127.0.0.1:3002"   # 见下节
     qqStateUrl: "http://127.0.0.1:3002/api/qq/state"  # dsh-qq 的最后一条消息
@@ -105,7 +113,7 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
       targetId: "主人的QQ号"
 ```
 
-重启 dsh，然后 **设置 → 心跳** 就有可视化面板了（改完点保存即时生效，不用重启）。
+重启 dsh，然后 **设置 → 想你了** 就有可视化面板了（改完点保存即时生效，不用重启）。
 
 ## 两种「思考」引擎
 
@@ -236,14 +244,17 @@ systemctl restart dsh
    所以新增 `qqStateUrl`（默认 `http://127.0.0.1:3002/api/qq/state`），每次醒来直接从
    dsh-qq 同步正确的 `lastMessageAt` / `lastMessageText`；端口不同就改这一项。
 
-正常。它大多数时候选择沉默。想看它怎么想的，去 **设置 → 心跳**：
+正常。它大多数时候选择沉默。0.3.0 起不再等固定间隔，而是看这轮的「期待时间」；设置页会显示期待时间、为什么是这时候、已经主动找过几次。
 
+- 「还没到期待时间」→ 这一轮设的期待点还没到
+- 「主人已经回了」→ 期待点作废，等下一轮
 - 「没有配置发送渠道」→ `channel.wsUrl` / `channel.targetId` 没填
 - 「安静时段」→ 当前在 `quietFrom~quietTo` 之间
 - 「距上次主动消息还不够久」→ 没到 `minGapMinutes`
 - 「主人刚说过话，不打扰」→ `userActiveMinutes` 内有人说话
+- 「已经主动找了 N 次，等主人先开口」→ 连续多次没回，进入冷却
 
-手动验证一次：设置页点「立即想一次」，或者
+手动验证一次：设置页点「现在想他一次」，或者
 
 ```bash
 curl -X POST http://127.0.0.1:3080/api/heartbeat/trigger

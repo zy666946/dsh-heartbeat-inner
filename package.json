@@ -1,9 +1,9 @@
 {
   "name": "dsh-heartbeat-inner",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "给 DeepSeek Harness 的主动心跳插件：定时醒来，自己判断要不要主动找主人说句话（OneBot/QQ 渠道，带设置页）。",
+  "description": "给 DeepSeek Harness 的「想你了」插件：回复完成后按内容/时间/情绪设期待点，到点没回再想一次，带退避、安静时段和设置页。",
   "keywords": [
     "deepseek",
     "deepseek-harness",
