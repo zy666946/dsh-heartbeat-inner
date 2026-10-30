@@ -98,6 +98,7 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
     dailyMax: 5              # 每天最多主动发几条
     cwd: "/path/to/your/workspace"
     thinkUrl: "http://127.0.0.1:3002"   # 见下节
+    qqStateUrl: "http://127.0.0.1:3002/api/qq/state"  # dsh-qq 的最后一条消息
     channel:
       kind: onebot
       wsUrl: "ws://127.0.0.1:3001?access_token=你的token"
@@ -226,9 +227,14 @@ systemctl restart dsh
 
 ### 插件装上了但从不主动说话
 
-0.2.3 修了一个真 bug：DSH 的 runtime-context / system-reminder 也会以 `user/message`
-事件发出来，旧版把这些全记成「主人刚说过话」，于是 `lastUserAt` 永远被刷成当前时间，
-心跳每次醒来都跳过。现在只认 `source.kind === 'user'`，并排除心跳自己的内心会话。
+0.2.3 修了两层真 bug：
+
+1. DSH 的 runtime-context / system-reminder 也会以 `user/message` 事件发出来，旧版把这些
+   全记成「主人刚说过话」，于是 `lastUserAt` 永远被刷成当前时间，心跳每次醒来都跳过。
+   现在只认 `source.kind === 'user'`，并排除心跳自己的内心会话。
+2. QQ 会话跑在 dsh-qq 拉起的独立 SDK 子进程里，父进程的 `session/event` 看不到它。
+   所以新增 `qqStateUrl`（默认 `http://127.0.0.1:3002/api/qq/state`），每次醒来直接从
+   dsh-qq 同步正确的 `lastMessageAt` / `lastMessageText`；端口不同就改这一项。
 
 正常。它大多数时候选择沉默。想看它怎么想的，去 **设置 → 心跳**：
 
