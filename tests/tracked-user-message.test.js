@@ -105,10 +105,16 @@ test('从 last-turn.json 读 dsh-qq 写下的这一轮', () => {
       userText: '今天有点累',
       replyAt: 1793320060000,
       replyText: '那先歇会儿，我在。',
+      recentTurns: [
+        { userAt: 1793319000000, userText: '今天忙吗', replyAt: 1793319060000, replyText: '还行，你呢。' },
+        { userAt: 1793320000000, userText: '今天有点累', replyAt: 1793320060000, replyText: '那先歇会儿，我在。' },
+      ],
     }))
     const turn = readLastTurn()
     assert.equal(turn.userText, '今天有点累')
     assert.equal(turn.replyText, '那先歇会儿，我在。')
+    assert.equal(turn.recentTurns.length, 2)
+    assert.equal(turn.recentTurns[0].userText, '今天忙吗')
     assert.equal(turn.replyAt, 1793320060000)
   } finally {
     process.env.DSH_HOME = previousHome
