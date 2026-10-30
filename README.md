@@ -45,7 +45,7 @@ dsh-qq 写 last-turn.json（这轮的你 + 我）
    │     ├─ {"send": false, "waitMinutes": 45} → 晚点再想
    │     └─ {"send": true,  "message": "…"}   → 通过 OneBot 发出去
    │
-   └─ 发了没回 → 指数退避；连续多次后停下等主人先开口
+   └─ 发了没回 → 指数退避，下一次再想
 ```
 
 ## 安装
@@ -99,10 +99,6 @@ ln -sfn "$DSH_HOME/plugins/dsh-heartbeat-inner" node_modules/dsh-heartbeat-inner
     enabled: true
     quietFrom: 0             # 安静时段（支持跨零点，23→7 表示 23:00-07:00）
     quietTo: 7
-    minGapMinutes: 120       # 两次主动消息最小间隔
-    userActiveMinutes: 40    # 主人刚说话后多少分钟内不打扰
-    dailyMax: 5              # 每天最多主动发几条
-    maxAttempts: 3           # 连续主动几次没回就停下等主人
     cwd: "/path/to/your/workspace"
     thinkUrl: "http://127.0.0.1:3002"   # 见下节
     qqStateUrl: "http://127.0.0.1:3002/api/qq/state"  # dsh-qq 的最后一条消息
@@ -249,9 +245,6 @@ systemctl restart dsh
 - 「主人已经回了」→ 期待点作废，等下一轮
 - 「没有配置发送渠道」→ `channel.wsUrl` / `channel.targetId` 没填
 - 「安静时段」→ 当前在 `quietFrom~quietTo` 之间
-- 「距上次主动消息还不够久」→ 没到 `minGapMinutes`
-- 「主人刚说过话，不打扰」→ `userActiveMinutes` 内有人说话
-- 「已经主动找了 N 次，等主人先开口」→ 连续多次没回，进入冷却
 
 手动验证一次：设置页点「现在想他一次」，或者
 

@@ -81,11 +81,12 @@ test('期待时间：亲近的话更短，正事更长', () => {
   assert.ok(work.at > warm.at, '正事应该比亲近的话等更久')
 })
 
-test('期待时间：主动多次后停止，深夜顺延到早上', () => {
-  const cfg = { timeZone: 'Asia/Shanghai', maxAttempts: 3 }
-  const stopped = computeExpectation(cfg, { attempts: 3 }, { userText: '在吗' }, Date.now())
-  assert.equal(stopped.at, 0)
-  assert.match(stopped.reason, /等主人先开口/)
+test('期待时间：主动多次后变长，深夜顺延到早上', () => {
+  const cfg = { timeZone: 'Asia/Shanghai' }
+  const now = Date.parse('2026-10-30T15:00:00+08:00')
+  const first = computeExpectation(cfg, { attempts: 0 }, { userText: '在吗' }, now)
+  const later = computeExpectation(cfg, { attempts: 3 }, { userText: '在吗' }, now)
+  assert.ok(later.at > first.at, '主动多次后应该退避')
 
   const night = Date.parse('2026-10-30T23:30:00+08:00')
   const exp = computeExpectation(cfg, { attempts: 0 }, { userText: '晚安' }, night)

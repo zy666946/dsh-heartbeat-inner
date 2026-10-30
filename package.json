@@ -1,6 +1,6 @@
 {
   "name": "dsh-heartbeat-inner",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "description": "给 DeepSeek Harness 的「想你了」插件：回复完成后按内容/时间/情绪设期待点，到点没回再想一次，带退避、安静时段和设置页。",
