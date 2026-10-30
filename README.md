@@ -226,6 +226,10 @@ systemctl restart dsh
 
 ### 插件装上了但从不主动说话
 
+0.2.3 修了一个真 bug：DSH 的 runtime-context / system-reminder 也会以 `user/message`
+事件发出来，旧版把这些全记成「主人刚说过话」，于是 `lastUserAt` 永远被刷成当前时间，
+心跳每次醒来都跳过。现在只认 `source.kind === 'user'`，并排除心跳自己的内心会话。
+
 正常。它大多数时候选择沉默。想看它怎么想的，去 **设置 → 心跳**：
 
 - 「没有配置发送渠道」→ `channel.wsUrl` / `channel.targetId` 没填
